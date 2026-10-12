@@ -206,7 +206,7 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
         <tbody id="cmpBody"></tbody>
       </table>
     </div>
-    <p class="note">Semanas de lunes a domingo. La semana en curso aún no termina, así que puede verse más baja.</p>
+    <p class="note">Semanas de lunes a domingo. Se comparan los mismos días de cada semana. La web cuenta hasta ayer.</p>
   </section>
 
   <section class="card">
@@ -578,15 +578,17 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
       web={};(webData.timeSeries.visitors.data||[]).forEach(function(x){web[String(x.date).slice(0,10)]=+x.value||0});
     }
     function sum(ks,f){var t=0;ks.forEach(function(k){t+=f(k)});return t}
+    var dow=(now.getDay()+6)%7;
     var defs=[
-      ["Entradas (tu conteo)",function(k){return (by[k]||{all:0}).all}],
-      ["Por Instagram (tu conteo)",function(k){return (by[k]||{ig:0}).ig}]
+      ["Entradas (tu conteo)",function(k){return (by[k]||{all:0}).all},dow+1],
+      ["Por Instagram (tu conteo)",function(k){return (by[k]||{ig:0}).ig},dow+1]
     ];
-    if(web)defs.push(["Visitantes de la web",function(k){return web[k]||0}]);
+    if(web)defs.push(["Visitantes de la web",function(k){return web[k]||0},dow]);
     var tb=$("cmpBody");tb.innerHTML="";
     defs.forEach(function(d){
-      var c=sum(cur,d[1]),p=sum(prev,d[1]),txt,up=false;
-      if(p===0){txt=c>0?"nuevo":"—";up=c>0}
+      var c=sum(cur.slice(0,d[2]),d[1]),p=sum(prev.slice(0,d[2]),d[1]),txt,up=false;
+      if(d[2]===0){txt="—"}
+      else if(p===0){txt=c>0?"nuevo":"—";up=c>0}
       else{var pc=Math.round((c-p)/p*100);txt=(pc>0?"+":"")+pc+" %";up=pc>0}
       var tr=document.createElement("tr");
       [d[0],c,p,txt].forEach(function(v,i){

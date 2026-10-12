@@ -1,0 +1,310 @@
+{
+  "updatedAt": "2026-10-12T00:00:00Z",
+  "note": "Datos de ejemplo tomados el 12 de octubre de 2026. Se reemplazan solos cuando se activa la actualización automática.",
+  "instagram": [
+    {
+      "date": "2026-10-05",
+      "reach": 0,
+      "follower_count_1d": 0,
+      "accounts_engaged": 0
+    },
+    {
+      "date": "2026-10-06",
+      "reach": 1,
+      "follower_count_1d": 0,
+      "accounts_engaged": 0
+    },
+    {
+      "date": "2026-10-07",
+      "reach": 0,
+      "follower_count_1d": 1,
+      "accounts_engaged": 0
+    },
+    {
+      "date": "2026-10-08",
+      "reach": 211,
+      "follower_count_1d": 0,
+      "accounts_engaged": 2
+    },
+    {
+      "date": "2026-10-09",
+      "reach": 887,
+      "follower_count_1d": 4,
+      "accounts_engaged": 8
+    },
+    {
+      "date": "2026-10-10",
+      "reach": 923,
+      "follower_count_1d": 0,
+      "accounts_engaged": 5
+    }
+  ],
+  "facebook": [
+    {
+      "date": "2026-10-05",
+      "page_views_total": 3,
+      "page_impressions_unique": 1,
+      "page_daily_follows_unique": 5
+    },
+    {
+      "date": "2026-10-06",
+      "page_views_total": 0,
+      "page_impressions_unique": 4,
+      "page_daily_follows_unique": 3
+    },
+    {
+      "date": "2026-10-07",
+      "page_views_total": 1,
+      "page_impressions_unique": 3,
+      "page_daily_follows_unique": 0
+    },
+    {
+      "date": "2026-10-08",
+      "page_views_total": 10,
+      "page_impressions_unique": 535,
+      "page_daily_follows_unique": 2
+    },
+    {
+      "date": "2026-10-09",
+      "page_views_total": 9,
+      "page_impressions_unique": 124,
+      "page_daily_follows_unique": 2
+    },
+    {
+      "date": "2026-10-10",
+      "page_views_total": 3,
+      "page_impressions_unique": 18,
+      "page_daily_follows_unique": 0
+    },
+    {
+      "date": "2026-10-11",
+      "page_views_total": 2,
+      "page_impressions_unique": 10,
+      "page_daily_follows_unique": 0
+    }
+  ],
+  "web": {
+    "timeSeries": {
+      "visitors": {
+        "total": 457,
+        "data": [
+          {
+            "date": "2026-09-28 00:00:00",
+            "value": 69,
+            "timestamp": "2026-09-28T00:00:00Z"
+          },
+          {
+            "date": "2026-09-29 00:00:00",
+            "value": 43,
+            "timestamp": "2026-09-29T00:00:00Z"
+          },
+          {
+            "date": "2026-09-30 00:00:00",
+            "value": 67,
+            "timestamp": "2026-09-30T00:00:00Z"
+          },
+          {
+            "date": "2026-10-01 00:00:00",
+            "value": 36,
+            "timestamp": "2026-10-01T00:00:00Z"
+          },
+          {
+            "date": "2026-10-02 00:00:00",
+            "value": 18,
+            "timestamp": "2026-10-02T00:00:00Z"
+          },
+          {
+            "date": "2026-10-03 00:00:00",
+            "value": 24,
+            "timestamp": "2026-10-03T00:00:00Z"
+          },
+          {
+            "date": "2026-10-04 00:00:00",
+            "value": 11,
+            "timestamp": "2026-10-04T00:00:00Z"
+          },
+          {
+            "date": "2026-10-05 00:00:00",
+            "value": 27,
+            "timestamp": "2026-10-05T00:00:00Z"
+          },
+          {
+            "date": "2026-10-06 00:00:00",
+            "value": 23,
+            "timestamp": "2026-10-06T00:00:00Z"
+          },
+          {
+            "date": "2026-10-07 00:00:00",
+            "value": 42,
+            "timestamp": "2026-10-07T00:00:00Z"
+          },
+          {
+            "date": "2026-10-08 00:00:00",
+            "value": 31,
+            "timestamp": "2026-10-08T00:00:00Z"
+          },
+          {
+            "date": "2026-10-09 00:00:00",
+            "value": 35,
+            "timestamp": "2026-10-09T00:00:00Z"
+          },
+          {
+            "date": "2026-10-10 00:00:00",
+            "value": 20,
+            "timestamp": "2026-10-10T00:00:00Z"
+          },
+          {
+            "date": "2026-10-11 00:00:00",
+            "value": 11,
+            "timestamp": "2026-10-11T00:00:00Z"
+          }
+        ]
+      },
+      "pageviews": {
+        "total": 800,
+        "data": [
+          {
+            "date": "2026-09-28 00:00:00",
+            "value": 141,
+            "timestamp": "2026-09-28T00:00:00Z"
+          },
+          {
+            "date": "2026-09-29 00:00:00",
+            "value": 52,
+            "timestamp": "2026-09-29T00:00:00Z"
+          },
+          {
+            "date": "2026-09-30 00:00:00",
+            "value": 72,
+            "timestamp": "2026-09-30T00:00:00Z"
+          },
+          {
+            "date": "2026-10-01 00:00:00",
+            "value": 38,
+            "timestamp": "2026-10-01T00:00:00Z"
+          },
+          {
+            "date": "2026-10-02 00:00:00",
+            "value": 39,
+            "timestamp": "2026-10-02T00:00:00Z"
+          },
+          {
+            "date": "2026-10-03 00:00:00",
+            "value": 31,
+            "timestamp": "2026-10-03T00:00:00Z"
+          },
+          {
+            "date": "2026-10-04 00:00:00",
+            "value": 66,
+            "timestamp": "2026-10-04T00:00:00Z"
+          },
+          {
+            "date": "2026-10-05 00:00:00",
+            "value": 112,
+            "timestamp": "2026-10-05T00:00:00Z"
+          },
+          {
+            "date": "2026-10-06 00:00:00",
+            "value": 39,
+            "timestamp": "2026-10-06T00:00:00Z"
+          },
+          {
+            "date": "2026-10-07 00:00:00",
+            "value": 70,
+            "timestamp": "2026-10-07T00:00:00Z"
+          },
+          {
+            "date": "2026-10-08 00:00:00",
+            "value": 43,
+            "timestamp": "2026-10-08T00:00:00Z"
+          },
+          {
+            "date": "2026-10-09 00:00:00",
+            "value": 49,
+            "timestamp": "2026-10-09T00:00:00Z"
+          },
+          {
+            "date": "2026-10-10 00:00:00",
+            "value": 25,
+            "timestamp": "2026-10-10T00:00:00Z"
+          },
+          {
+            "date": "2026-10-11 00:00:00",
+            "value": 23,
+            "timestamp": "2026-10-11T00:00:00Z"
+          }
+        ]
+      }
+    },
+    "lists": {
+      "source": {
+        "data": [
+          {
+            "label": "Direct",
+            "value": 304
+          },
+          {
+            "label": "google.com",
+            "value": 135
+          },
+          {
+            "label": "l.instagram.com",
+            "value": 8
+          },
+          {
+            "label": "m.facebook.com",
+            "value": 5
+          },
+          {
+            "label": "bing.com",
+            "value": 3
+          },
+          {
+            "label": "facebook.com",
+            "value": 2
+          },
+          {
+            "label": "duckduckgo.com",
+            "value": 1
+          }
+        ]
+      },
+      "country": {
+        "data": [
+          {
+            "label": "Unknown",
+            "value": 218
+          },
+          {
+            "label": "US",
+            "value": 83
+          },
+          {
+            "label": "AR",
+            "value": 68
+          },
+          {
+            "label": "CN",
+            "value": 28
+          },
+          {
+            "label": "HK",
+            "value": 21
+          },
+          {
+            "label": "SG",
+            "value": 20
+          },
+          {
+            "label": "ES",
+            "value": 5
+          },
+          {
+            "label": "MX",
+            "value": 4
+          }
+        ]
+      }
+    }
+  }
+}
