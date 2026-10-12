@@ -1,0 +1,509 @@
+<title>Contador de Entradas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: una sola columna para el pulgar. Número del día arriba, dos botones grandes, semana en barras, historial abajo. */
+:root{
+  --bg:#f3f1ee; --surface:#ffffff; --fg:#1d1b22; --muted:#6c6874; --line:#dedad5;
+  --entro:#1d1b22; --entro-fg:#ffffff;
+  --ig:#d6249f; --ig-fg:#ffffff; --ig-soft:#f7d9ee;
+  --ok:#1f7a4d; --fb:#1c6fd1;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15131a; --surface:#1f1c27; --fg:#f1eef6; --muted:#9a95a6; --line:#34303f;
+  --entro:#f1eef6; --entro-fg:#15131a;
+  --ig:#ee5cbf; --ig-fg:#1a0b15; --ig-soft:#4a1f3d; --ok:#59c791; --fb:#6ea8f5; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15131a; --surface:#1f1c27; --fg:#f1eef6; --muted:#9a95a6; --line:#34303f;
+  --entro:#f1eef6; --entro-fg:#15131a;
+  --ig:#ee5cbf; --ig-fg:#1a0b15; --ig-soft:#4a1f3d; --ok:#59c791; --fb:#6ea8f5; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font:16px/1.4 var(--display);padding-inline:16px;padding-block:16px 40px;-webkit-tap-highlight-color:transparent}
+.app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+h1{font-size:1rem;font-weight:700;margin:0;letter-spacing:.01em}
+.since{font:500 .75rem var(--mono);color:var(--muted);text-align:right}
+.today{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px 20px 16px;display:flex;flex-direction:column;gap:6px}
+.label{font:600 .7rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.big{font:800 7.5rem/0.95 var(--display);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.sub{display:flex;gap:16px;flex-wrap:wrap;font:500 .85rem var(--mono);color:var(--muted)}
+.sub b{color:var(--fg);font-weight:600}
+.sub .igtxt b{color:var(--ig)}
+.btns{display:grid;grid-template-columns:1fr;gap:12px}
+button{font-family:var(--display);cursor:pointer;border:0;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--ig);outline-offset:3px}
+.add{border-radius:20px;padding:22px 20px;font-size:1.35rem;font-weight:800;display:flex;justify-content:space-between;align-items:center;min-height:84px;transition:transform .06s}
+.add:active{transform:scale(.97)}
+.add small{font:500 .75rem var(--mono);opacity:.75;display:block;font-weight:500;margin-top:2px}
+.add .plus{font:600 2rem var(--mono)}
+.entro{background:var(--entro);color:var(--entro-fg)}
+.ig{background:var(--ig);color:var(--ig-fg)}
+.row{display:flex;gap:10px}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--fg);border-radius:12px;padding:10px 14px;font-size:.85rem;font-weight:700;flex:1}
+.ghost[disabled]{opacity:.4;cursor:default}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-size:.95rem}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi b{font:800 1.9rem/1 var(--display);font-variant-numeric:tabular-nums}
+.kpi span{font:500 .68rem var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.chart{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:150px}
+.col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;min-width:0}
+.num{font:600 .72rem var(--mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar{width:100%;display:flex;flex-direction:column;justify-content:flex-end;border-radius:8px;overflow:hidden;background:transparent;min-height:3px}
+.bar .o{background:var(--line)}
+.bar .i{background:var(--ig)}
+.col.now .bar .o{background:var(--fg)}
+.col.now .dow{color:var(--fg);font-weight:700}
+.dow{font:500 .72rem var(--mono);color:var(--muted)}
+.legend{display:flex;gap:14px;font:500 .72rem var(--mono);color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.igname{font:500 .75rem var(--mono);color:var(--ig);margin-left:6px}
+#igBody td:nth-child(2){color:var(--ig);font-weight:600}
+.fbname{color:var(--fb)}
+#fbBody td:nth-child(2){color:var(--fb);font-weight:600}
+.peak{margin:0;font-size:1.05rem;font-weight:700;text-wrap:balance}
+.peak em{font-style:normal;color:var(--ig)}
+.hours{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:110px}
+.hcol{height:100%;display:flex;align-items:flex-end}
+.hbar{width:100%;display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px;overflow:hidden;min-height:2px}
+.hbar .o{background:var(--line)}
+.hbar .i{background:var(--ig)}
+.hcol.top .hbar .o{background:var(--fg)}
+.hlabels{display:flex;justify-content:space-between;font:500 .68rem var(--mono);color:var(--muted)}
+.slots{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.slot{display:flex;justify-content:space-between;gap:8px;font:500 .78rem var(--mono);border-top:1px solid var(--line);padding-top:8px;color:var(--muted)}
+.slot b{color:var(--fg);font-weight:600}
+table{width:100%;border-collapse:collapse;font:500 .82rem var(--mono);font-variant-numeric:tabular-nums}
+th{font-weight:600;color:var(--muted);text-align:right;padding:0 0 8px;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
+th:first-child,td:first-child{text-align:left}
+td{padding:8px 0;border-top:1px solid var(--line);text-align:right}
+.wrap{overflow-x:auto}
+textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px;font:500 .75rem var(--mono)}
+.note{font-size:.8rem;color:var(--muted);margin:0}
+.danger{color:#c0392b;border-color:currentColor}
+.confirm{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.85rem}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font:600 .8rem var(--mono);opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.add,.toast{transition:none}}
+</style>
+
+<div class="app">
+  <header>
+    <h1>Contador de entradas</h1>
+    <div class="since" id="since"></div>
+  </header>
+
+  <section class="today" aria-live="polite">
+    <div class="label" id="todayLabel">Hoy</div>
+    <div class="big" id="todayTotal">0</div>
+    <div class="sub">
+      <span class="igtxt">Por Instagram <b id="todayIg">0</b></span>
+      <span>Otras <b id="todayOther">0</b></span>
+    </div>
+  </section>
+
+  <div class="btns">
+    <button class="add entro" id="addEntro" type="button"><span>Entró alguien<small>sumar 1 persona</small></span><span class="plus">+1</span></button>
+    <button class="add ig" id="addIg" type="button"><span>Vino por Instagram<small>sumar 1 persona</small></span><span class="plus">+1</span></button>
+  </div>
+  <div class="row">
+    <button class="ghost" id="undo" type="button">Deshacer último</button>
+  </div>
+
+  <section class="card" id="igCard">
+    <h2>Instagram <span class="igname">@radiototalsanluis</span></h2>
+    <p class="note" id="igState" aria-live="polite">Conectando con Instagram…</p>
+    <div class="kpis" id="igKpis" hidden>
+      <div class="kpi"><b id="igReach">0</b><span>Alcance (7 días)</span></div>
+      <div class="kpi"><b id="igFollow">0</b><span>Seguidores nuevos</span></div>
+      <div class="kpi"><b id="igEng">0</b><span>Cuentas que interactuaron</span></div>
+    </div>
+    <div class="wrap" id="igWrap" hidden>
+      <table>
+        <thead><tr><th>Día</th><th>Alcance</th><th>Nuevos</th><th>Entradas</th><th>Por IG</th></tr></thead>
+        <tbody id="igBody"></tbody>
+      </table>
+    </div>
+    <div class="row"><button class="ghost" id="igRetry" type="button" hidden>Reintentar</button></div>
+    <p class="note" id="igStamp"></p>
+  </section>
+
+  <section class="card" id="fbCard">
+    <h2>Facebook <span class="igname fbname">Radio Total 103.5 San Luis</span></h2>
+    <p class="note" id="fbState" aria-live="polite">Conectando con Facebook…</p>
+    <div class="kpis" id="fbKpis" hidden>
+      <div class="kpi"><b id="fbViews">0</b><span>Visitas a la página</span></div>
+      <div class="kpi"><b id="fbReach">0</b><span>Personas alcanzadas</span></div>
+      <div class="kpi"><b id="fbFollow">0</b><span>Seguidores nuevos</span></div>
+    </div>
+    <div class="wrap" id="fbWrap" hidden>
+      <table>
+        <thead><tr><th>Día</th><th>Visitas</th><th>Alcance</th><th>Nuevos</th></tr></thead>
+        <tbody id="fbBody"></tbody>
+      </table>
+    </div>
+    <div class="row"><button class="ghost" id="fbRetry" type="button" hidden>Reintentar</button></div>
+    <p class="note" id="fbStamp"></p>
+  </section>
+
+  <section class="card" id="webCard">
+    <h2>Página web <span class="igname fbname">radiototalsanluis.com.ar</span></h2>
+    <p class="note">Aún no está conectada. Cuando se conecte Google Analytics, aquí aparecerán las visitas de cada día.</p>
+  </section>
+
+  <section class="card">
+    <h2>Esta semana</h2>
+    <div class="kpis">
+      <div class="kpi"><b id="wTotal">0</b><span>Personas</span></div>
+      <div class="kpi"><b id="wIg">0</b><span>Instagram</span></div>
+      <div class="kpi"><b id="wPct">0%</b><span>Del total</span></div>
+    </div>
+    <div class="chart" id="chart"></div>
+    <div class="legend"><span><i style="background:var(--ig)"></i>Instagram</span><span><i style="background:var(--line)"></i>Otras</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Horarios de más ingreso</h2>
+    <p class="peak" id="peak"></p>
+    <div class="hours" id="hours"></div>
+    <div class="hlabels"><span>0 h</span><span>6 h</span><span>12 h</span><span>18 h</span><span>24 h</span></div>
+    <div class="slots" id="slots"></div>
+  </section>
+
+  <section class="card">
+    <h2>Semana por semana</h2>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Semana</th><th>Total</th><th>Instagram</th><th>%</th></tr></thead>
+        <tbody id="weeks"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Datos</h2>
+    <p class="note">Todo se guarda en este teléfono. Copia el resumen para pegarlo en una hoja de cálculo o mandarlo por mensaje.</p>
+    <div class="row">
+      <button class="ghost" id="copy" type="button">Copiar resumen</button>
+      <button class="ghost danger" id="resetAsk" type="button">Borrar todo</button>
+    </div>
+    <div class="confirm" id="resetBox" hidden>
+      <span>¿Borrar todos los conteos?</span>
+      <button class="ghost danger" id="resetYes" type="button" style="flex:none">Sí, borrar</button>
+      <button class="ghost" id="resetNo" type="button" style="flex:none">Cancelar</button>
+    </div>
+    <textarea id="csv" readonly hidden aria-label="Resumen para copiar"></textarea>
+  </section>
+
+  <p class="note">Para tenerla como app: en el navegador del teléfono abre el menú y elige «Agregar a pantalla de inicio».</p>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  var KEY="contador-entradas-v1";
+  var DOW=["L","M","X","J","V","S","D"];
+  var MESES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  var state={start:null,events:[]};
+  var IG_SERVER="Windsor_ai";
+  var igRows=null,igStatus="loading",igStamp=null,igStop=null,igMcp=null;
+  var $=function(id){return document.getElementById(id)};
+
+  function load(){
+    try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&Array.isArray(s.events)){state=s}}catch(e){}
+  }
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+  function pad(n){return n<10?"0"+n:""+n}
+  function dayKey(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+  function mondayOf(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());var w=(x.getDay()+6)%7;x.setDate(x.getDate()-w);return x}
+  function fmt(d){return d.getDate()+" "+MESES[d.getMonth()]}
+
+  if(!state.start){state.start=dayKey(mondayOf(new Date()))}
+  load();
+  if(!state.start){state.start=dayKey(mondayOf(new Date()))}
+
+  function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("show")},1400)}
+  function buzz(){try{if(navigator.vibrate)navigator.vibrate(15)}catch(e){}}
+
+  function add(ig){
+    state.events.push({t:Date.now(),ig:!!ig});
+    save();buzz();render();
+    toast(ig?"+1 por Instagram":"+1 entrada");
+  }
+  function undo(){
+    if(!state.events.length)return;
+    state.events.pop();save();render();toast("Último conteo deshecho");
+  }
+
+  function render(){
+    var now=new Date(),todayK=dayKey(now);
+    var mon=mondayOf(now);
+    var byDay={};
+    state.events.forEach(function(e){
+      var k=dayKey(new Date(e.t));
+      var r=byDay[k]||(byDay[k]={all:0,ig:0});
+      r.all++;if(e.ig)r.ig++;
+    });
+    var td=byDay[todayK]||{all:0,ig:0};
+    $("todayTotal").textContent=td.all;
+    $("todayIg").textContent=td.ig;
+    $("todayOther").textContent=td.all-td.ig;
+    $("todayLabel").textContent="Hoy · "+["dom","lun","mar","mié","jue","vie","sáb"][now.getDay()]+" "+fmt(now);
+    var sp=state.start.split("-");
+    $("since").textContent="Desde el "+fmt(new Date(+sp[0],+sp[1]-1,+sp[2]));
+    $("undo").disabled=!state.events.length;
+    renderHours();
+    renderIg();
+    renderFb();
+
+    var max=1,wAll=0,wIg=0,days=[];
+    for(var i=0;i<7;i++){
+      var d=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i);
+      var r=byDay[dayKey(d)]||{all:0,ig:0};
+      days.push({d:d,r:r});
+      if(r.all>max)max=r.all;
+      wAll+=r.all;wIg+=r.ig;
+    }
+    $("wTotal").textContent=wAll;
+    $("wIg").textContent=wIg;
+    $("wPct").textContent=(wAll?Math.round(wIg/wAll*100):0)+"%";
+    var ch=$("chart");ch.innerHTML="";
+    days.forEach(function(x,i){
+      var col=document.createElement("div");
+      col.className="col"+(dayKey(x.d)===todayK?" now":"");
+      var n=document.createElement("div");n.className="num";n.textContent=x.r.all;
+      var bar=document.createElement("div");bar.className="bar";
+      bar.style.height=(x.r.all/max*100*0.75)+"%";
+      var o=document.createElement("div");o.className="o";o.style.flex=(x.r.all-x.r.ig)+" 0 0";
+      var g=document.createElement("div");g.className="i";g.style.flex=x.r.ig+" 0 0";
+      bar.appendChild(o);bar.appendChild(g);
+      var w=document.createElement("div");w.className="dow";w.textContent=DOW[i];
+      col.appendChild(n);col.appendChild(bar);col.appendChild(w);
+      ch.appendChild(col);
+    });
+
+    // semanas desde el inicio
+    var weeks={};
+    state.events.forEach(function(e){
+      var k=dayKey(mondayOf(new Date(e.t)));
+      var r=weeks[k]||(weeks[k]={all:0,ig:0});
+      r.all++;if(e.ig)r.ig++;
+    });
+    weeks[dayKey(mon)]=weeks[dayKey(mon)]||{all:0,ig:0};
+    var keys=Object.keys(weeks).sort().reverse();
+    var tb=$("weeks");tb.innerHTML="";
+    keys.forEach(function(k){
+      var p=k.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
+      var e=new Date(d.getFullYear(),d.getMonth(),d.getDate()+6);
+      var r=weeks[k],tr=document.createElement("tr");
+      [fmt(d)+" – "+fmt(e),r.all,r.ig,(r.all?Math.round(r.ig/r.all*100):0)+"%"].forEach(function(v){
+        var td=document.createElement("td");td.textContent=v;tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderHours(){
+    var hrs=[],i;
+    for(i=0;i<24;i++)hrs.push({all:0,ig:0});
+    state.events.forEach(function(e){
+      var r=hrs[new Date(e.t).getHours()];r.all++;if(e.ig)r.ig++;
+    });
+    var max=0,peak=0;
+    hrs.forEach(function(r,h){if(r.all>max){max=r.all;peak=h}});
+    var box=$("hours");box.innerHTML="";
+    hrs.forEach(function(r,h){
+      var c=document.createElement("div");
+      c.className="hcol"+(max&&h===peak?" top":"");
+      var b=document.createElement("div");b.className="hbar";
+      b.style.height=(max?r.all/max*100:0)+"%";
+      b.title=h+":00 · "+r.all;
+      var o=document.createElement("div");o.className="o";o.style.flex=(r.all-r.ig)+" 0 0";
+      var g=document.createElement("div");g.className="i";g.style.flex=r.ig+" 0 0";
+      b.appendChild(o);b.appendChild(g);c.appendChild(b);box.appendChild(c);
+    });
+    var pk=$("peak");
+    if(!max){pk.textContent="Cuando registres entradas, aquí verás a qué hora llega más gente.";}
+    else{pk.innerHTML="Más gente entra de <em>"+pad(peak)+":00 a "+pad(peak)+":59</em> ("+max+(max===1?" persona":" personas")+")";}
+    var slots=[["Madrugada","0–5 h",0,5],["Mañana","6–11 h",6,11],["Tarde","12–17 h",12,17],["Noche","18–23 h",18,23]];
+    var total=0;hrs.forEach(function(r){total+=r.all});
+    var sl=$("slots");sl.innerHTML="";
+    slots.forEach(function(s){
+      var n=0;for(var h=s[2];h<=s[3];h++)n+=hrs[h].all;
+      var d=document.createElement("div");d.className="slot";
+      var a=document.createElement("span");a.textContent=s[0]+" "+s[1];
+      var v=document.createElement("b");v.textContent=n+" ("+(total?Math.round(n/total*100):0)+"%)";
+      d.appendChild(a);d.appendChild(v);sl.appendChild(d);
+    });
+  }
+
+  var IG_MSG={
+    loading:"Conectando con Instagram…",
+    nomcp:"Esta vista no puede conectarse a Instagram. Ábrela desde tu sesión de Claude.",
+    reauth:"Hay que volver a conectar Windsor.ai en Ajustes → Conectores de claude.ai.",
+    denied:"Permite el acceso a Windsor.ai para esta página y toca Reintentar.",
+    error:"No se pudo leer Instagram. Toca Reintentar."
+  };
+  function igKind(err){
+    var c=err&&err.code;
+    if(c==="needs_reauth"||c==="server_not_connected"||c==="selection_required")return "reauth";
+    if(c==="not_in_manifest"||c==="approval_required"||c==="consent_required"||c==="blocked_by_policy")return "denied";
+    return "error";
+  }
+  function igParse(res){
+    var p=res&&res.payload;
+    if(typeof p==="string"){try{p=JSON.parse(p)}catch(e){}}
+    if(p&&!Array.isArray(p)&&p.result!==undefined)p=p.result;
+    if(typeof p==="string"){try{p=JSON.parse(p)}catch(e){}}
+    return Array.isArray(p)?p:null;
+  }
+  function igApply(res){
+    var rows=igParse(res);
+    if(!rows){igStatus="error";renderIg();return}
+    igRows=rows;igStatus="ok";
+    igStamp=(res.cache&&res.cache.storedAt)?new Date(res.cache.storedAt):new Date();
+    renderIg();
+  }
+  function igInput(){
+    return {connector:"instagram",fields:["date","reach","follower_count_1d","accounts_engaged"],date_preset:"last_7d"};
+  }
+  function igLoadOnce(){
+    if(!igMcp)return;
+    igStatus="loading";renderIg();
+    igMcp.callTool(IG_SERVER,"get_data",igInput(),{cache:{refresh:true}}).then(igApply,function(err){igStatus=igKind(err);renderIg()});
+  }
+  function renderIg(){
+    var msg=$("igState"),kp=$("igKpis"),wrap=$("igWrap"),retry=$("igRetry"),stamp=$("igStamp");
+    if(igStatus!=="ok"||!igRows){
+      msg.hidden=false;msg.textContent=IG_MSG[igStatus]||IG_MSG.error;
+      kp.hidden=true;wrap.hidden=true;stamp.textContent="";
+      retry.hidden=!(igStatus==="denied"||igStatus==="error"||igStatus==="reauth");
+      return;
+    }
+    msg.hidden=true;retry.hidden=true;kp.hidden=false;wrap.hidden=false;
+    var by={};
+    state.events.forEach(function(e){
+      var k=dayKey(new Date(e.t)),r=by[k]||(by[k]={all:0,ig:0});r.all++;if(e.ig)r.ig++;
+    });
+    var rows=igRows.slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date))});
+    var tr=0,tf=0,te=0,tb=$("igBody");tb.innerHTML="";
+    rows.forEach(function(x){
+      var reach=+x.reach||0,fol=+x.follower_count_1d||0,eng=+x.accounts_engaged||0;
+      tr+=reach;tf+=fol;te+=eng;
+      var p=String(x.date).split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
+      var m=by[x.date]||{all:0,ig:0};
+      var row=document.createElement("tr");
+      [["dom","lun","mar","mié","jue","vie","sáb"][d.getDay()]+" "+fmt(d),reach,fol,m.all,m.ig].forEach(function(v){
+        var c=document.createElement("td");c.textContent=v;row.appendChild(c);
+      });
+      tb.appendChild(row);
+    });
+    $("igReach").textContent=tr;$("igFollow").textContent=tf;$("igEng").textContent=te;
+    stamp.textContent="Actualizado "+pad(igStamp.getHours())+":"+pad(igStamp.getMinutes())+". Se refresca solo cada 5 minutos. Instagram entrega el día de hoy al día siguiente.";
+  }
+  async function initIg(){
+    $("igRetry").addEventListener("click",igLoadOnce);
+    if(!window.claude||!window.claude.use){igStatus="nomcp";renderIg();return}
+    try{igMcp=await window.claude.use("mcp")}catch(e){igMcp=null}
+    if(!igMcp){igStatus="nomcp";renderIg();return}
+    igStop=igMcp.watchTool(IG_SERVER,"get_data",igInput(),function(ev){
+      if(ev.type==="data"){igApply(ev.result)}
+      else{
+        var k=igKind(ev.error);
+        if(k!=="error"||!igRows){igStatus=k;if(k!=="error")igRows=null;renderIg()}
+      }
+    },{refetchInterval:300000});
+    initFb();
+  }
+
+  var fbRows=null,fbStatus="loading",fbStamp=null;
+  function fbInput(){
+    return {connector:"facebook_organic",fields:["date","page_views_total","page_impressions_unique","page_daily_follows_unique"],date_preset:"last_7d"};
+  }
+  function fbApply(res){
+    var rows=igParse(res);
+    if(!rows){fbStatus="error";renderFb();return}
+    fbRows=rows;fbStatus="ok";
+    fbStamp=(res.cache&&res.cache.storedAt)?new Date(res.cache.storedAt):new Date();
+    renderFb();
+  }
+  function fbLoadOnce(){
+    if(!igMcp)return;
+    fbStatus="loading";renderFb();
+    igMcp.callTool(IG_SERVER,"get_data",fbInput(),{cache:{refresh:true}}).then(fbApply,function(err){fbStatus=igKind(err);renderFb()});
+  }
+  function renderFb(){
+    var msg=$("fbState"),kp=$("fbKpis"),wrap=$("fbWrap"),retry=$("fbRetry"),stamp=$("fbStamp");
+    if(fbStatus!=="ok"||!fbRows){
+      msg.hidden=false;msg.textContent=(IG_MSG[fbStatus]||IG_MSG.error).replace("Instagram","Facebook");
+      kp.hidden=true;wrap.hidden=true;stamp.textContent="";
+      retry.hidden=!(fbStatus==="denied"||fbStatus==="error"||fbStatus==="reauth");
+      return;
+    }
+    msg.hidden=true;retry.hidden=true;kp.hidden=false;wrap.hidden=false;
+    var rows=fbRows.slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date))});
+    var tv=0,tr=0,tf=0,tb=$("fbBody");tb.innerHTML="";
+    rows.forEach(function(x){
+      var v=+x.page_views_total||0,r=+x.page_impressions_unique||0,f=+x.page_daily_follows_unique||0;
+      tv+=v;tr+=r;tf+=f;
+      var p=String(x.date).split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
+      var row=document.createElement("tr");
+      [["dom","lun","mar","mié","jue","vie","sáb"][d.getDay()]+" "+fmt(d),v,r,f].forEach(function(c){
+        var td=document.createElement("td");td.textContent=c;row.appendChild(td);
+      });
+      tb.appendChild(row);
+    });
+    $("fbViews").textContent=tv;$("fbReach").textContent=tr;$("fbFollow").textContent=tf;
+    stamp.textContent="Actualizado "+pad(fbStamp.getHours())+":"+pad(fbStamp.getMinutes())+". Se refresca solo cada 5 minutos.";
+  }
+  function initFb(){
+    $("fbRetry").addEventListener("click",fbLoadOnce);
+    igMcp.watchTool(IG_SERVER,"get_data",fbInput(),function(ev){
+      if(ev.type==="data"){fbApply(ev.result)}
+      else{
+        var k=igKind(ev.error);
+        if(k!=="error"||!fbRows){fbStatus=k;if(k!=="error")fbRows=null;renderFb()}
+      }
+    },{refetchInterval:300000});
+  }
+
+  function summary(){
+    var byDay={};
+    state.events.forEach(function(e){
+      var k=dayKey(new Date(e.t));
+      var r=byDay[k]||(byDay[k]={all:0,ig:0});
+      r.all++;if(e.ig)r.ig++;
+    });
+    var lines=["fecha,total,instagram,otras"];
+    Object.keys(byDay).sort().forEach(function(k){var r=byDay[k];lines.push([k,r.all,r.ig,r.all-r.ig].join(","))});
+    return lines.join("\n");
+  }
+  $("copy").addEventListener("click",function(){
+    var txt=summary(),ta=$("csv");
+    ta.value=txt;ta.hidden=false;
+    var done=function(){toast("Resumen copiado")};
+    var fallback=function(){ta.focus();ta.select();toast("Selecciona y copia el texto")};
+    try{navigator.clipboard.writeText(txt).then(done,fallback)}catch(e){fallback()}
+  });
+
+  $("addEntro").addEventListener("click",function(){add(false)});
+  $("addIg").addEventListener("click",function(){add(true)});
+  $("undo").addEventListener("click",undo);
+  $("resetAsk").addEventListener("click",function(){$("resetBox").hidden=false});
+  $("resetNo").addEventListener("click",function(){$("resetBox").hidden=true});
+  $("resetYes").addEventListener("click",function(){
+    state={start:dayKey(mondayOf(new Date())),events:[]};save();
+    $("resetBox").hidden=true;$("csv").hidden=true;render();toast("Conteos borrados");
+  });
+
+  render();
+  initIg();
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)render()});
+})();
+</script>
