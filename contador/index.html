@@ -62,6 +62,10 @@ button:focus-visible{outline:3px solid var(--ig);outline-offset:3px}
 .dow{font:500 .72rem var(--mono);color:var(--muted)}
 .legend{display:flex;gap:14px;font:500 .72rem var(--mono);color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.daynav{display:flex;align-items:center;gap:10px}
+.daynav .ghost{flex:none;width:52px;font-size:1.3rem;padding:8px 0}
+.daylabel{flex:1;text-align:center;font:600 .85rem var(--mono)}
+.row .ghost{padding:10px 8px}
 .igname{font:500 .75rem var(--mono);color:var(--ig);margin-left:6px}
 #igBody td:nth-child(2){color:var(--ig);font-weight:600}
 .fbname{color:var(--fb)}
@@ -111,9 +115,17 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
     <button class="add entro" id="addEntro" type="button"><span>Entró alguien<small>sumar 1 persona</small></span><span class="plus">+1</span></button>
     <button class="add ig" id="addIg" type="button"><span>Vino por Instagram<small>sumar 1 persona</small></span><span class="plus">+1</span></button>
   </div>
+  <div class="daynav" role="group" aria-label="Elegir día">
+    <button class="ghost" id="dayPrev" type="button" aria-label="Día anterior">‹</button>
+    <div class="daylabel" id="dayLabel">Hoy</div>
+    <button class="ghost" id="dayNext" type="button" aria-label="Día siguiente">›</button>
+  </div>
   <div class="row">
+    <button class="ghost" id="subEntro" type="button">−1 Entró</button>
+    <button class="ghost" id="subIg" type="button">−1 Instagram</button>
     <button class="ghost" id="undo" type="button">Deshacer último</button>
   </div>
+  <p class="note" id="dayNote"></p>
 
   <section class="card" id="igCard">
     <h2>Instagram <span class="igname">@radiototalsanluis</span></h2>
@@ -245,10 +257,31 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
   function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("show")},1400)}
   function buzz(){try{if(navigator.vibrate)navigator.vibrate(15)}catch(e){}}
 
+  var viewKey=null;
+  function parseKey(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
   function add(ig){
-    state.events.push({t:Date.now(),ig:!!ig});
+    var todayK=dayKey(new Date()),vk=viewKey||todayK,ev;
+    if(vk===todayK){ev={t:Date.now(),ig:!!ig}}
+    else{var d=parseKey(vk);d.setHours(12,0,0,0);ev={t:d.getTime(),ig:!!ig,m:true}}
+    state.events.push(ev);
     save();buzz();render();
     toast(ig?"+1 por Instagram":"+1 entrada");
+  }
+  function sub(ig){
+    var vk=viewKey||dayKey(new Date()),i;
+    for(i=state.events.length-1;i>=0;i--){
+      var e=state.events[i];
+      if(dayKey(new Date(e.t))===vk&&!!e.ig===!!ig){state.events.splice(i,1);save();buzz();render();toast(ig?"−1 Instagram":"−1 entrada");return}
+    }
+    toast("No hay conteos de ese tipo en este día");
+  }
+  function moveDay(delta){
+    var todayK=dayKey(new Date()),d=parseKey(viewKey||todayK);
+    d.setDate(d.getDate()+delta);
+    var k=dayKey(d);
+    if(k>todayK)return;
+    viewKey=(k===todayK)?null:k;
+    render();
   }
   function undo(){
     if(!state.events.length)return;
@@ -264,11 +297,15 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
       var r=byDay[k]||(byDay[k]={all:0,ig:0});
       r.all++;if(e.ig)r.ig++;
     });
-    var td=byDay[todayK]||{all:0,ig:0};
+    var vk=viewKey||todayK,vd=parseKey(vk);
+    var td=byDay[vk]||{all:0,ig:0};
+    $("dayLabel").textContent=(vk===todayK?"Hoy · ":"")+["dom","lun","mar","mié","jue","vie","sáb"][vd.getDay()]+" "+fmt(vd);
+    $("dayNext").disabled=(vk===todayK);
+    $("dayNote").textContent=vk===todayK?"":"Estás editando un día anterior. Los conteos que agregues aquí no cuentan para el gráfico de horarios.";
     $("todayTotal").textContent=td.all;
     $("todayIg").textContent=td.ig;
     $("todayOther").textContent=td.all-td.ig;
-    $("todayLabel").textContent="Hoy · "+["dom","lun","mar","mié","jue","vie","sáb"][now.getDay()]+" "+fmt(now);
+    $("todayLabel").textContent=vk===todayK?"Hoy":"Día elegido";
     var sp=state.start.split("-");
     $("since").textContent="Desde el "+fmt(new Date(+sp[0],+sp[1]-1,+sp[2]));
     $("undo").disabled=!state.events.length;
@@ -327,6 +364,7 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
     var hrs=[],i;
     for(i=0;i<24;i++)hrs.push({all:0,ig:0});
     state.events.forEach(function(e){
+      if(e.m)return;
       var r=hrs[new Date(e.t).getHours()];r.all++;if(e.ig)r.ig++;
     });
     var max=0,peak=0;
@@ -575,6 +613,10 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
   $("addEntro").addEventListener("click",function(){add(false)});
   $("addIg").addEventListener("click",function(){add(true)});
   $("undo").addEventListener("click",undo);
+  $("subEntro").addEventListener("click",function(){sub(false)});
+  $("subIg").addEventListener("click",function(){sub(true)});
+  $("dayPrev").addEventListener("click",function(){moveDay(-1)});
+  $("dayNext").addEventListener("click",function(){moveDay(1)});
   $("resetAsk").addEventListener("click",function(){$("resetBox").hidden=false});
   $("resetNo").addEventListener("click",function(){$("resetBox").hidden=true});
   $("resetYes").addEventListener("click",function(){
