@@ -153,7 +153,21 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
 
   <section class="card" id="webCard">
     <h2>Página web <span class="igname fbname">radiototalsanluis.com.ar</span></h2>
-    <p class="note">Aún no está conectada. Cuando se conecte Google Analytics, aquí aparecerán las visitas de cada día.</p>
+    <p class="note" id="webState" aria-live="polite">Conectando con la web…</p>
+    <div class="kpis" id="webKpis" hidden>
+      <div class="kpi"><b id="webVis">0</b><span>Visitantes (14 días)</span></div>
+      <div class="kpi"><b id="webPv">0</b><span>Páginas vistas</span></div>
+      <div class="kpi"><b id="webSoc">0</b><span>Desde Instagram y Facebook</span></div>
+    </div>
+    <div class="wrap" id="webWrap" hidden>
+      <table>
+        <thead><tr><th>Día</th><th>Visitantes</th><th>Páginas</th></tr></thead>
+        <tbody id="webBody"></tbody>
+      </table>
+    </div>
+    <p class="note" id="webAr"></p>
+    <div class="row"><button class="ghost" id="webRetry" type="button" hidden>Reintentar</button></div>
+    <p class="note" id="webStamp"></p>
   </section>
 
   <section class="card">
@@ -420,6 +434,72 @@ textarea{width:100%;min-height:110px;background:var(--bg);color:var(--fg);border
       }
     },{refetchInterval:300000});
     initFb();
+    initWeb();
+  }
+
+  var WEB_SERVER="Lovable",WEB_PROJECT="ab9e9036-9c5c-4f7e-8a46-7ee7d6475cea";
+  var webData=null,webStatus="loading",webStamp=null,webTimer=null;
+  function webInput(){
+    var end=new Date(),start=new Date(end.getTime()-13*86400000);
+    function d(x){return x.getUTCFullYear()+"-"+pad(x.getUTCMonth()+1)+"-"+pad(x.getUTCDate())}
+    return {project_id:WEB_PROJECT,start_date:d(start)+"T00:00:00Z",end_date:d(end)+"T23:59:59Z",granularity:"daily"};
+  }
+  function webParse(res){
+    var p=res&&res.payload;
+    if(typeof p==="string"){try{p=JSON.parse(p)}catch(e){}}
+    return p&&p.timeSeries&&p.timeSeries.visitors?p:null;
+  }
+  function webLoad(){
+    if(!igMcp)return;
+    if(!webData){webStatus="loading";renderWeb()}
+    igMcp.callTool(WEB_SERVER,"get_project_analytics",webInput(),{cache:false}).then(function(res){
+      var p=webParse(res);
+      if(!p){webStatus="error";renderWeb();return}
+      webData=p;webStatus="ok";webStamp=new Date();renderWeb();
+    },function(err){
+      var k=igKind(err);
+      if(k!=="error"||!webData){webStatus=k;if(k!=="error")webData=null;renderWeb()}
+    });
+  }
+  function renderWeb(){
+    var msg=$("webState"),kp=$("webKpis"),wrap=$("webWrap"),retry=$("webRetry"),stamp=$("webStamp"),ar=$("webAr");
+    if(webStatus!=="ok"||!webData){
+      var t=IG_MSG[webStatus]||IG_MSG.error;
+      msg.hidden=false;msg.textContent=t.replace("Instagram","la web").replace("Windsor.ai","Lovable");
+      kp.hidden=true;wrap.hidden=true;stamp.textContent="";ar.textContent="";
+      retry.hidden=!(webStatus==="denied"||webStatus==="error"||webStatus==="reauth");
+      return;
+    }
+    msg.hidden=true;retry.hidden=true;kp.hidden=false;wrap.hidden=false;
+    var ts=webData.timeSeries,pv={};
+    (ts.pageviews&&ts.pageviews.data||[]).forEach(function(x){pv[String(x.date).slice(0,10)]=+x.value||0});
+    var rows=(ts.visitors.data||[]).slice().sort(function(a,b){return String(b.date).localeCompare(String(a.date))});
+    var tb=$("webBody");tb.innerHTML="";
+    rows.forEach(function(x){
+      var k=String(x.date).slice(0,10),p=k.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
+      var row=document.createElement("tr");
+      [["dom","lun","mar","mié","jue","vie","sáb"][d.getDay()]+" "+fmt(d),+x.value||0,pv[k]||0].forEach(function(c){
+        var td=document.createElement("td");td.textContent=c;row.appendChild(td);
+      });
+      tb.appendChild(row);
+    });
+    $("webVis").textContent=ts.visitors.total||0;
+    $("webPv").textContent=(ts.pageviews&&ts.pageviews.total)||0;
+    var soc=0,arN=0;
+    ((webData.lists&&webData.lists.source&&webData.lists.source.data)||[]).forEach(function(s){
+      if(/instagram|facebook/i.test(s.label))soc+=+s.value||0;
+    });
+    ((webData.lists&&webData.lists.country&&webData.lists.country.data)||[]).forEach(function(s){
+      if(s.label==="AR")arN+=+s.value||0;
+    });
+    $("webSoc").textContent=soc;
+    ar.textContent="Desde Argentina: "+arN+" de "+(ts.visitors.total||0)+". Parte del resto puede ser tráfico de robots.";
+    stamp.textContent="Actualizado "+pad(webStamp.getHours())+":"+pad(webStamp.getMinutes())+". Se refresca solo cada 5 minutos.";
+  }
+  function initWeb(){
+    $("webRetry").addEventListener("click",webLoad);
+    webLoad();
+    webTimer=setInterval(function(){if(!document.hidden)webLoad()},300000);
   }
 
   var fbRows=null,fbStatus="loading",fbStamp=null;
